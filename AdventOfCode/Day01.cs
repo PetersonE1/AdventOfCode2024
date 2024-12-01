@@ -5,7 +5,7 @@
 public class Day01 : TestableDay
 {
     private readonly string _input;
-    private (List<int> Left, List<int> Right) _numbers = new (new (), new ());
+    private (List<int> Left, List<int> Right) _numbers = new(new(), new());
 
     public Day01()
     {
@@ -33,5 +33,22 @@ public class Day01 : TestableDay
         return new(sum.ToString());
     }
 
-    public override ValueTask<string> Solve_2() => new(_numbers.Left.Sum(i => i * _numbers.Right.Count(n => n == i)).ToString());
+    public override ValueTask<string> Solve_2()
+    {
+        int sum = 0;
+        Dictionary<int, int> cachedValues = new();
+        foreach (int i in _numbers.Left)
+        {
+            if (cachedValues.TryGetValue(i, out int value))
+            {
+                sum += value;
+                continue;
+            }
+            value = i * _numbers.Right.Count(n => n == i);
+            cachedValues.Add(i, value);
+            sum += value;
+        }
+
+        return new(sum.ToString());
+    }
 }
