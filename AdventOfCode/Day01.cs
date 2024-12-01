@@ -5,35 +5,33 @@
 public class Day01 : TestableDay
 {
     private readonly string _input;
-    private (int[] left, int[] right) _numbers;
+    private (List<int> Left, List<int> Right) _numbers = new (new (), new ());
 
     public Day01()
     {
         _input = File.ReadAllText(InputFilePath);
 
-        string[] lines = _input.Split("\r\n");
-        _numbers = new (new int[lines.Length], new int[lines.Length]);
-        for (int i = 0; i < lines.Length; i++)
+        foreach (string line in _input.Split("\r\n"))
         {
-            string[] digits = lines[i].Split("   ");
-            _numbers.left[i] = int.Parse(digits[0]);
-            _numbers.right[i] = int.Parse(digits[1]);
+            int[] digits = line.Split("   ").Select(n => int.Parse(n)).ToArray();
+            _numbers.Left.Add(digits[0]);
+            _numbers.Right.Add(digits[1]);
         }
+
+        _numbers.Left.Sort();
+        _numbers.Right.Sort();
     }
 
     public override ValueTask<string> Solve_1()
     {
-        var orderedLeft = _numbers.left.Order();
-        var orderedRight = _numbers.right.Order();
-
         int sum = 0;
-        for (int i = 0; i < orderedLeft.Count(); i++)
+        for (int i = 0; i < _numbers.Left.Count(); i++)
         {
-            int diff = orderedLeft.ElementAt(i) - orderedRight.ElementAt(i);
-            sum += diff < 0 ? -diff : diff;
+            int diff = _numbers.Left[i] - _numbers.Right[i];
+            sum += Math.Abs(diff);
         }
         return new(sum.ToString());
     }
 
-    public override ValueTask<string> Solve_2() => new(_numbers.left.Sum(i => i * _numbers.right.Count(n => n == i)).ToString());
+    public override ValueTask<string> Solve_2() => new(_numbers.Left.Sum(i => i * _numbers.Right.Count(n => n == i)).ToString());
 }
