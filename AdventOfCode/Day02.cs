@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace AdventOfCode
 {
-    //[RunTest]
+    [RunTest]
     public class Day02 : TestableDay
     {
         private readonly string _input;
@@ -46,7 +46,7 @@ namespace AdventOfCode
                 {
                     int temp = report[i];
                     report.RemoveAt(i);
-                    if (IsSafe(report))
+                    if (IsSafe(report.ToArray()))
                     {
                         numSafe++;
                         break;
@@ -57,19 +57,19 @@ namespace AdventOfCode
             return new(numSafe.ToString());
         }
 
-        private bool IsSafe(IEnumerable<int> report)
+        private bool IsSafe(int[] report)
         {
             bool safe = true;
-            bool increasing = report.ElementAt(1) > report.ElementAt(0);
+            bool increasing = report[1] > report[0];
 
-            for (int i = 0; i < report.Count() - 1; i++)
+            for (int i = 0; i < report.Length - 1; i++)
             {
-                if ((increasing && report.ElementAt(i + 1) <= report.ElementAt(i)) || (!increasing && report.ElementAt(i + 1) >= report.ElementAt(i)))
+                if ((increasing && report[i + 1] <= report[i]) || (!increasing && report[i + 1] >= report[i]))
                 {
                     safe = false;
                     break;
                 }
-                if (report.ElementAt(i + 1) == report.ElementAt(i) || Math.Abs(report.ElementAt(i + 1) - report.ElementAt(i)) > 3)
+                if (report[i + 1] == report[i] || Math.Abs(report[i + 1] - report[i]) > 3)
                 {
                     safe = false;
                     break;
