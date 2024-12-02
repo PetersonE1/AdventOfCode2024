@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace AdventOfCode
 {
-    [RunTest]
+    //[RunTest]
     public class Day02 : TestableDay
     {
         private readonly string _input;
@@ -23,22 +24,7 @@ namespace AdventOfCode
             int numSafe = 0;
             foreach (int[] report in _reports)
             {
-                bool safe = true;
-                bool increasing = report[1] > report[0];
-                for (int i = 0; i < report.Length - 1; i++)
-                {
-                    if ((increasing && report[i + 1] <= report[i]) || (!increasing && report[i + 1] >= report[i]))
-                    {
-                        safe = false;
-                        break;
-                    }
-                    if (report[i+1] == report[i] || Math.Abs(report[i+1] - report[i]) > 3)
-                    {
-                        safe = false;
-                        break;
-                    }
-                }
-                if (safe)
+                if (IsSafe(report))
                     numSafe++;
             }
             return new(numSafe.ToString());
@@ -46,7 +32,50 @@ namespace AdventOfCode
 
         public override ValueTask<string> Solve_2()
         {
-            throw new NotImplementedException();
+            int numSafe = 0;
+
+            foreach (int[] report_arr in _reports)
+            {
+                if (IsSafe(report_arr))
+                {
+                    numSafe++;
+                    continue;
+                }
+                List<int> report = report_arr.ToList();
+                for (int i = 0; i < report.Count; i++)
+                {
+                    int temp = report[i];
+                    report.RemoveAt(i);
+                    if (IsSafe(report.ToArray()))
+                    {
+                        numSafe++;
+                        break;
+                    }
+                    report.Insert(i, temp);
+                }
+            }
+            return new(numSafe.ToString());
+        }
+
+        private bool IsSafe(int[] report)
+        {
+            bool safe = true;
+            bool increasing = report[1] > report[0];
+
+            for (int i = 0; i < report.Length - 1; i++)
+            {
+                if ((increasing && report[i + 1] <= report[i]) || (!increasing && report[i + 1] >= report[i]))
+                {
+                    safe = false;
+                    break;
+                }
+                if (report[i + 1] == report[i] || Math.Abs(report[i + 1] - report[i]) > 3)
+                {
+                    safe = false;
+                    break;
+                }
+            }
+            return safe;
         }
     }
 }
