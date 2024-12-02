@@ -46,7 +46,7 @@ namespace AdventOfCode
                 {
                     int temp = report[i];
                     report.RemoveAt(i);
-                    if (IsSafe(report.ToArray()))
+                    if (IsSafe(report))
                     {
                         numSafe++;
                         break;
@@ -57,19 +57,19 @@ namespace AdventOfCode
             return new(numSafe.ToString());
         }
 
-        private bool IsSafe(int[] report)
+        private bool IsSafe(IEnumerable<int> report)
         {
             bool safe = true;
-            bool increasing = report[1] > report[0];
+            bool increasing = report.ElementAt(1) > report.ElementAt(0);
 
-            for (int i = 0; i < report.Length - 1; i++)
+            for (int i = 0; i < report.Count() - 1; i++)
             {
-                if ((increasing && report[i + 1] <= report[i]) || (!increasing && report[i + 1] >= report[i]))
+                if ((increasing && report.ElementAt(i + 1) <= report.ElementAt(i)) || (!increasing && report.ElementAt(i + 1) >= report.ElementAt(i)))
                 {
                     safe = false;
                     break;
                 }
-                if (report[i + 1] == report[i] || Math.Abs(report[i + 1] - report[i]) > 3)
+                if (report.ElementAt(i + 1) == report.ElementAt(i) || Math.Abs(report.ElementAt(i + 1) - report.ElementAt(i)) > 3)
                 {
                     safe = false;
                     break;
