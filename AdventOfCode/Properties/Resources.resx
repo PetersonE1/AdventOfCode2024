@@ -118,6 +118,6 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="TestInputFullPath" xml:space="preserve">
-    <value>E:\Visual Studio\source\repos\AdventOfCode2024\AdventOfCode\TestInputs\</value>
+    <value>C:\Users\Peter\VSCode\repos\AdventOfCode2024\AdventOfCode2024\AdventOfCode\TestInputs\</value>
   </data>
 </root>

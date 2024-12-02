@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 
 namespace AdventOfCode
 {
-    [RunTest]
     public class Day02 : TestableDay
     {
         private readonly string _input;
@@ -24,7 +23,7 @@ namespace AdventOfCode
             int numSafe = 0;
             foreach (int[] report in _reports)
             {
-                if (IsSafe(report))
+                if (ProblemIndex(report) == -1)
                     numSafe++;
             }
             return new(numSafe.ToString());
@@ -36,17 +35,20 @@ namespace AdventOfCode
 
             foreach (int[] report_arr in _reports)
             {
-                if (IsSafe(report_arr))
+                int problemIndex = ProblemIndex(report_arr);
+                if (problemIndex == -1)
                 {
                     numSafe++;
                     continue;
                 }
+
                 List<int> report = report_arr.ToList();
-                for (int i = 0; i < report.Count; i++)
+                
+                foreach (int i in new int[] { 0, 1, problemIndex - 1, problemIndex })
                 {
                     int temp = report[i];
                     report.RemoveAt(i);
-                    if (IsSafe(report.ToArray()))
+                    if (ProblemIndex(report.ToArray()) == -1)
                     {
                         numSafe++;
                         break;
@@ -57,25 +59,25 @@ namespace AdventOfCode
             return new(numSafe.ToString());
         }
 
-        private bool IsSafe(int[] report)
+        private int ProblemIndex(int[] report)
         {
-            bool safe = true;
+            int problemIndex = -1;
             bool increasing = report[1] > report[0];
 
             for (int i = 0; i < report.Length - 1; i++)
             {
                 if ((increasing && report[i + 1] <= report[i]) || (!increasing && report[i + 1] >= report[i]))
                 {
-                    safe = false;
+                    problemIndex = i + 1;
                     break;
                 }
                 if (report[i + 1] == report[i] || Math.Abs(report[i + 1] - report[i]) > 3)
                 {
-                    safe = false;
+                    problemIndex = i + 1;
                     break;
                 }
             }
-            return safe;
+            return problemIndex;
         }
     }
 }
