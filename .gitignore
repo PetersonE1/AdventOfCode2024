@@ -351,3 +351,4 @@ MigrationBackup/
 
 # Added by user
 *.resx
+/AdventOfCode/Properties/Resources.resx
