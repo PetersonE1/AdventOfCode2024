@@ -6,42 +6,41 @@ using System.Threading.Tasks;
 
 namespace AdventOfCode
 {
-    [RunTest]
+    //[RunTest]
     public class Day04 : TestableDay
     {
         private readonly string _input;
+        private readonly char[,] _board;
+        private readonly char[] _xmas = ['X', 'M', 'A', 'S'];
 
         public Day04()
         {
             _input = File.ReadAllText(InputFilePath);
+
+            string[] lines = _input.Split("\r\n");
+            _board = new char[lines[0].Length, lines.Length];
+
+            for (int y = 0; y < lines.Length; y++)
+            {
+                for (int x = 0; x < lines[0].Length; x++)
+                {
+                    _board[x, y] = lines[x][y];
+                }
+            }
         }
 
         public override ValueTask<string> Solve_1()
         {
             int count = 0;
 
-            int width = _input.IndexOf('\r');
-            int height = _input.Length / (width + 1);
-            string input = _input.Replace("\r\n", "");
-
-            Console.WriteLine($"Width: {width}");
-            Console.WriteLine($"Height: {height}");
-            Console.WriteLine("Expected Result: 2554\n");
-
-            for (int y = 0; y < height; y++)
+            for (int y = 0; y < _board.GetLength(1); y++)
             {
-                for (int x = 0; x < width; x++)
+                for (int x = 0; x < _board.GetLength(0); x++)
                 {
-                    if (input[y * width + x] != 'X')
+                    if (_board[x, y] != 'X')
                         continue;
-                    if (CheckHorizontal(x, y, width, height, input))
-                        count++; 
-                    if (CheckVertical(x, y, width, height, input))
-                        count++;
-                    if (CheckDiagonal_1(x, y, width, height, input))
-                        count++;
-                    if (CheckDiagonal_2(x, y, width, height, input))
-                        count++;
+
+                    count += AllXs(x, y);
                 }
             }
 
@@ -50,63 +49,83 @@ namespace AdventOfCode
 
         public override ValueTask<string> Solve_2()
         {
-            throw new NotImplementedException();
-        }
+            int count = 0;
 
-        // Cardinal Directions
-
-        private bool CheckHorizontal(int x, int y, int width, int height, string input)
-        {
-            int index = y * width + x;
-            if ((index + 4) % width <= index % width)
-                return false;
-            string word = input.Substring(index, 4);
-            if (word == "XMAS" || word == "SAMX") Console.WriteLine($"Horizontal: [{x}, {y}]");
-            return word == "XMAS" || word == "SAMX";
-        }
-
-        private bool CheckVertical(int x, int y, int width, int height, string input)
-        {
-            int index = y * width + x;
-            if (index + (width * 4) > width * height)
-                return false;
-            string word = "";
-            for (int i = 0; i < 4; i++)
+            for (int y = 0; y < _board.GetLength(1); y++)
             {
-                word += input[index + (width * i)];
+                for (int x = 0; x < _board.GetLength(0); x++)
+                {
+                    if (_board[x, y] != 'A')
+                        continue;
+
+                    if (CheckX_Mas(x, y))
+                        count++;
+                }
             }
-            if (word == "XMAS" || word == "SAMX") Console.WriteLine($"Vertical: [{x}, {y}]");
-            return word == "XMAS" || word == "SAMX";
+
+            return new(count.ToString());
         }
 
-        // Diagonal Directions
-
-        private bool CheckDiagonal_1(int x, int y, int width, int height, string input)
+        private bool TryGetBoard(int x, int y, out char c)
         {
-            int index = y * width + x;
-            if ((index + 4) + (width * 4) > width * height)
+            c = (char)0;
+            if (x < 0 || x >= _board.GetLength(0) || y < 0 || y >= _board.GetLength(1))
                 return false;
-            string word = "";
-            for (int i = 0; i < 4; i++)
-            {
-                word += input[(index + i) + (width * i)];
-            }
-            if (word == "XMAS" || word == "SAMX") Console.WriteLine($"Diagonal ┘: [{x}, {y}]");
-            return word == "XMAS" || word == "SAMX";
+
+            c = _board[x, y];
+            return true;
         }
 
-        private bool CheckDiagonal_2(int x, int y, int width, int height, string input)
+        private int AllXs(int x, int y)
         {
-            int index = y * width + x;
-            if ((index + 4) - (width * 4) < 0)
-                return false;
-            string word = "";
-            for (int i = 0; i < 4; i++)
+            int count = 0;
+            for (int dx = -1; dx <= 1; dx++)
             {
-                word += input[(index + i) - (width * i)];
+                for (int dy = -1; dy <= 1; dy++)
+                {
+                    if (dx == 0 && dy == 0)
+                        continue;
+                    if (CheckXmas(x, y, dx, dy, new Queue<char>(_xmas)))
+                        count++;
+                }
             }
-            if (word == "XMAS" || word == "SAMX") Console.WriteLine($"Diagonal ┐: [{x}, {y}]");
-            return word == "XMAS" || word == "SAMX";
+            return count;
+        }
+
+        private bool CheckXmas(int x, int y, int dx, int dy, Queue<char> queue)
+        {
+            if (queue.Count == 0)
+                return true;
+
+            if (TryGetBoard(x, y, out char c))
+            {
+                if (c == queue.Dequeue())
+                    return CheckXmas(x + dx, y + dy, dx, dy, queue);
+            }
+
+            return false;
+        }
+
+        private bool CheckX_Mas(int x, int y)
+        {
+            List<char> BackSlash = new() { 'M', 'S' };
+            List<char> ForwardSlash = new() { 'M', 'S' };
+
+            if (TryGetBoard(x - 1, y - 1, out char c) && BackSlash.Contains(c))
+            {
+                BackSlash.Remove(c);
+                if (!(TryGetBoard(x + 1, y + 1, out c) && c == BackSlash.Single()))
+                    return false;
+
+                if (TryGetBoard(x - 1, y + 1, out c) && ForwardSlash.Contains(c))
+                {
+                    ForwardSlash.Remove(c);
+                    if (TryGetBoard(x + 1, y - 1, out c) && c == ForwardSlash.Single())
+                        return true;
+                }
+                return false;
+            }
+            return false;
         }
     }
 }
