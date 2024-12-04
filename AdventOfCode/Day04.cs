@@ -20,15 +20,6 @@ namespace AdventOfCode
         {
             int count = 0;
 
-            int uCount = 0;
-            int bCount = 0;
-            int fCount = 0;
-            int dCount = 0;
-            int fuCount = 0;
-            int bdCount = 0;
-            int fdCount = 0;
-            int buCount = 0;
-
             int width = _input.IndexOf('\r');
             int height = _input.Length / (width + 1);
             string input = _input.Replace("\r\n", "");
@@ -41,35 +32,18 @@ namespace AdventOfCode
             {
                 for (int x = 0; x < width; x++)
                 {
-                    if (CheckForward(x, y, width, height, input))
-                        fCount++; 
-                    if (CheckBackward(x, y, width, height, input))
-                        bCount++;
-                    if (CheckDown(x, y, width, height, input))
-                        dCount++;
-                    if (CheckUp(x, y, width, height, input))
-                        uCount++;
-                    if (CheckForwardDown(x, y, width, height, input))
-                        fdCount++;
-                    if (CheckBackwardUp(x, y, width, height, input))
-                        buCount++;
-                    if (CheckForwardUp(x, y, width, height, input))
-                        fuCount++;
-                    if (CheckBackwardDown(x, y, width, height, input))
-                        bdCount++;
+                    if (input[y * width + x] != 'X')
+                        continue;
+                    if (CheckHorizontal(x, y, width, height, input))
+                        count++; 
+                    if (CheckVertical(x, y, width, height, input))
+                        count++;
+                    if (CheckDiagonal_1(x, y, width, height, input))
+                        count++;
+                    if (CheckDiagonal_2(x, y, width, height, input))
+                        count++;
                 }
             }
-
-            Console.WriteLine($"Forward: {fCount}");
-            Console.WriteLine($"Backward: {bCount}");
-            Console.WriteLine($"Down: {dCount}");
-            Console.WriteLine($"Up: {uCount}");
-            Console.WriteLine($"Forward Down: {fdCount}");
-            Console.WriteLine($"Backward Up: {buCount}");
-            Console.WriteLine($"Forward Up: {fuCount}");
-            Console.WriteLine($"Backward Down: {bdCount}");
-
-            count = uCount + bCount + fCount + dCount + fuCount + bdCount + fdCount + buCount;
 
             return new(count.ToString());
         }
@@ -81,110 +55,58 @@ namespace AdventOfCode
 
         // Cardinal Directions
 
-        private bool CheckForward(int x, int y, int width, int height, string input)
+        private bool CheckHorizontal(int x, int y, int width, int height, string input)
         {
             int index = y * width + x;
             if ((index + 4) % width <= index % width)
                 return false;
             string word = input.Substring(index, 4);
-            //if (word == "XMAS") Console.WriteLine($"F [{x}, {y}] {word}");
-            return word == "XMAS";
+            if (word == "XMAS" || word == "SAMX") Console.WriteLine($"Horizontal: [{x}, {y}]");
+            return word == "XMAS" || word == "SAMX";
         }
 
-        private bool CheckBackward(int x, int y, int width, int height, string input)
+        private bool CheckVertical(int x, int y, int width, int height, string input)
         {
             int index = y * width + x;
-            if ((index - 4) % width >= index % width || index - 4 < 0)
-                return false;
-            string word = input.Substring(index - 4, 4);
-            //if (word == "SAMX") Console.WriteLine($"B [{x}, {y}] {word}");
-            return word == "SAMX";
-        }
-
-        private bool CheckDown(int x, int y, int width, int height, string input)
-        {
-            int index = y * width + x;
-            if (index + 4 * width >= width * height)
+            if (index + (width * 4) > width * height)
                 return false;
             string word = "";
             for (int i = 0; i < 4; i++)
             {
-                word += input[index + i * width];
+                word += input[index + (width * i)];
             }
-            //if (word == "XMAS") Console.WriteLine($"D [{x}, {y}] {word}");
-            return word == "XMAS";
-        }
-
-        private bool CheckUp(int x, int y, int width, int height, string input)
-        {
-            int index = y * width + x;
-            if (index - 4 * width < 0)
-                return false;
-            string word = "";
-            for (int i = 0; i < 4; i++)
-            {
-                word += input[index - i * width];
-            }
-            //if (word == "XMAS") Console.WriteLine($"U [{x}, {y}] {word}");
-            return word == "XMAS";
+            if (word == "XMAS" || word == "SAMX") Console.WriteLine($"Vertical: [{x}, {y}]");
+            return word == "XMAS" || word == "SAMX";
         }
 
         // Diagonal Directions
 
-        private bool CheckForwardDown(int x, int y, int width, int height, string input)
+        private bool CheckDiagonal_1(int x, int y, int width, int height, string input)
         {
             int index = y * width + x;
-            if ((index + 4 * width + 4) >= width * height)
+            if ((index + 4) + (width * 4) > width * height)
                 return false;
             string word = "";
             for (int i = 0; i < 4; i++)
             {
-                word += input[index + i * width + i];
+                word += input[(index + i) + (width * i)];
             }
-            //if (word == "XMAS") Console.WriteLine($"FD [{x}, {y}] {word}");
-            return word == "XMAS";
+            if (word == "XMAS" || word == "SAMX") Console.WriteLine($"Diagonal ┘: [{x}, {y}]");
+            return word == "XMAS" || word == "SAMX";
         }
 
-        private bool CheckBackwardUp(int x, int y, int width, int height, string input)
+        private bool CheckDiagonal_2(int x, int y, int width, int height, string input)
         {
             int index = y * width + x;
-            if ((index - 4 * width - 4) < 0)
+            if ((index + 4) - (width * 4) < 0)
                 return false;
             string word = "";
             for (int i = 0; i < 4; i++)
             {
-                word += input[index - i * width - i];
+                word += input[(index + i) - (width * i)];
             }
-            //if (word == "XMAS") Console.WriteLine($"BU [{x}, {y}] {word}");
-            return word == "XMAS";
-        }
-
-        private bool CheckForwardUp(int x, int y, int width, int height, string input)
-        {
-            int index = y * width + x;
-            if ((index - 4 * width + 4) < 0)
-                return false;
-            string word = "";
-            for (int i = 0; i < 4; i++)
-            {
-                word += input[index - i * width + i];
-            }
-            //if (word == "XMAS") Console.WriteLine($"FU [{x}, {y}] {word}");
-            return word == "XMAS";
-        }
-
-        private bool CheckBackwardDown(int x, int y, int width, int height, string input)
-        {
-            int index = y * width + x;
-            if ((index + 4 * width - 4) >= width * height)
-                return false;
-            string word = "";
-            for (int i = 0; i < 4; i++)
-            {
-                word += input[index + i * width - i];
-            }
-            //if (word == "XMAS") Console.WriteLine($"BD [{x}, {y}] {word}");
-            return word == "XMAS";
+            if (word == "XMAS" || word == "SAMX") Console.WriteLine($"Diagonal ┐: [{x}, {y}]");
+            return word == "XMAS" || word == "SAMX";
         }
     }
 }
