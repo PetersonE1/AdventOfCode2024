@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AdventOfCode
 {
-    [RunTest]
+    //[RunTest]
     public class Day05 : TestableDay
     {
         private readonly string _input;
@@ -158,9 +158,6 @@ namespace AdventOfCode
                             //Console.WriteLine("AFTER");
                             //foreach (var pair in storedIndices)
                                 //Console.WriteLine($"{i} - Reference for {(pair.Key.Queue.Count == 0 ? "NULL" : pair.Key.Queue.Peek())} at index {pair.Value}");
-                            // Bad I think because it isn't registering new links (i.e. 47|29)
-                            // However, breaks worse when removed, so need to remove and debug that
-                            //break;
                         }
                     }
                 }
@@ -176,6 +173,27 @@ namespace AdventOfCode
 
                 sum += update[(update.Count - 1) / 2];
             }
+
+            int numBadUpdates = 0;
+            foreach (List<int> update in _badUpdates)
+            {
+                foreach (int value in update)
+                {
+                    foreach (Rule rule in _rules)
+                    {
+                        rule.Check(value);
+                    }
+                }
+                if (_rules.Any(rule => rule.OutOfOrder && rule.Done))
+                {
+                    numBadUpdates++;
+                }
+                foreach (Rule rule in _rules)
+                {
+                    rule.Reset();
+                }
+            }
+            Console.WriteLine($"Error Check: Detected {numBadUpdates} bad updates.");
 
             return new ValueTask<string>(sum.ToString());
         }
