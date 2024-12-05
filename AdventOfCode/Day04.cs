@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 namespace AdventOfCode
 {
-    //[RunTest]
     public class Day04 : TestableDay
     {
         private readonly string _input;
