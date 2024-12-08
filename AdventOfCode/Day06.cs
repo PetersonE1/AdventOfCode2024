@@ -97,7 +97,64 @@ namespace AdventOfCode
 
         public override ValueTask<string> Solve_2()
         {
-            throw new NotImplementedException();
+            int blockableSpots = 0;
+
+            for (int y = 0; y < _visitedMap.GetLength(0); y++)
+            {
+                for (int x = 0; x < _visitedMap.GetLength(1); x++)
+                {
+                    if (_visitedMap[x, y] && !(x == _start.x && y == _start.y))
+                    {
+                        bool[,] newMap = CopyMap(_map);
+                        newMap[x, y] = true;
+
+                        (int x, int y) position = _start;
+                        Direction direction = Direction.Up;
+
+                        int iter = 0;
+                        while (true)
+                        {
+                            iter++;
+                            (int x, int y) prospectivePos = direction switch
+                            {
+                                Direction.Up => (position.x, position.y - 1),
+                                Direction.Down => (position.x, position.y + 1),
+                                Direction.Left => (position.x - 1, position.y),
+                                Direction.Right => (position.x + 1, position.y),
+                                _ => throw new InvalidOperationException()
+                            };
+                            if (prospectivePos.x < 0 || prospectivePos.x >= newMap.GetLength(0) || prospectivePos.y < 0 || prospectivePos.y >= newMap.GetLength(1))
+                            {
+                                break;
+                            }
+
+                            if (!newMap[prospectivePos.x, prospectivePos.y])
+                            {
+                                position = prospectivePos;
+                            }
+                            else
+                            {
+                                direction = direction switch
+                                {
+                                    Direction.Up => Direction.Right,
+                                    Direction.Right => Direction.Down,
+                                    Direction.Down => Direction.Left,
+                                    Direction.Left => Direction.Up,
+                                    _ => throw new InvalidOperationException()
+                                };
+                            }
+
+                            if (iter > 50000)
+                            {
+                                blockableSpots++;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return new ValueTask<string>(blockableSpots.ToString());
         }
 
         private void PrintMap()
@@ -110,6 +167,19 @@ namespace AdventOfCode
                 }
                 Console.WriteLine();
             }
+        }
+
+        public bool[,] CopyMap(bool[,] arr)
+        {
+            bool[,] newArr = new bool[arr.GetLength(0), arr.GetLength(1)];
+            for (int y = 0; y < arr.GetLength(1); y++)
+            {
+                for (int x = 0; x < arr.GetLength(0); x++)
+                {
+                    newArr[x, y] = arr[x, y];
+                }
+            }
+            return newArr;
         }
     }
 }
