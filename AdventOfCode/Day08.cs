@@ -47,7 +47,16 @@ namespace AdventOfCode
 
         public override ValueTask<string> Solve_2()
         {
-            throw new NotImplementedException();
+            HashSet<(int x, int y)> antinodePositions = new();
+
+            foreach (var antennae in _antennae)
+            {
+                CalculateInlineAntinodes(antennae.Value).ToList().ForEach(n => { if (IsInBounds(n)) antinodePositions.Add(n); });
+                if (antennae.Value.Count > 1)
+                    antennae.Value.ForEach(n => antinodePositions.Add(n));
+            }
+
+            return new ValueTask<string>(antinodePositions.Count.ToString());
         }
 
         private int CalculateRawAntinodeCount(int numberOfAntennae)
@@ -55,6 +64,21 @@ namespace AdventOfCode
             int denominator = Enumerable.Range(1, numberOfAntennae - 2).Aggregate(1, (n, item) => n * item);
             int numerator = Enumerable.Range(numberOfAntennae - 1, 2).Aggregate(denominator, (n, item) => n * item);
             return numerator / denominator;
+        }
+
+        private void DrawAntinodes(HashSet<(int x, int y)> antinodes)
+        {
+            for (int y = 0; y < _gridSize.height; y++)
+            {
+                for (int x = 0; x < _gridSize.width; x++)
+                {
+                    if (antinodes.Contains((x, y)))
+                        Console.Write('#');
+                    else
+                        Console.Write('.');
+                }
+                Console.WriteLine();
+            }
         }
 
         private bool IsInBounds((int x, int y) position) => position.x >= 0 && position.x < _gridSize.width && position.y >= 0 && position.y < _gridSize.height;
@@ -71,6 +95,28 @@ namespace AdventOfCode
                         continue;
                     (int dx, int dy) = (antennae[j].x - antennae[i].x, antennae[j].y - antennae[i].y);
                     antinodes.Add((antennae[j].x + dx, antennae[j].y + dy));
+                }
+            }
+            return antinodes;
+        }
+
+        private HashSet<(int x, int y)> CalculateInlineAntinodes(List<(int x, int y)> antennae)
+        {
+            HashSet<(int x, int y)> antinodes = new();
+
+            for (int i = 0; i < antennae.Count; i++)
+            {
+                for (int j = 0; j < antennae.Count; j++)
+                {
+                    if (i == j)
+                        continue;
+                    (int dx, int dy) = (antennae[j].x - antennae[i].x, antennae[j].y - antennae[i].y);
+                    (int x, int y) currentPos = (antennae[j].x, antennae[j].y);
+                    while (IsInBounds(currentPos))
+                    {
+                        currentPos = (currentPos.x + dx, currentPos.y + dy);
+                        antinodes.Add(currentPos);
+                    }
                 }
             }
             return antinodes;
