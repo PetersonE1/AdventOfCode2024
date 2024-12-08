@@ -11,6 +11,7 @@ namespace AdventOfCode
     {
         private readonly string _input;
         private readonly Rule[] _rules;
+        private readonly Rule_2[] _secondRules;
         private readonly int[][] _updates;
         private List<List<int>> _badUpdates = new();
 
@@ -19,6 +20,7 @@ namespace AdventOfCode
             _input = File.ReadAllText(InputFilePath);
             var tmp = _input.Split("\r\n\r\n").Select(n => n.Split("\r\n"));
             _rules = tmp.First().Select(n => new Rule(n.Split('|').Select(num => int.Parse(num)).ToArray())).ToArray();
+            _secondRules = _rules.Select(n => new Rule_2(n.RulePair)).ToArray();
             _updates = tmp.Last().Select(n => n.Split(',').Select(num => int.Parse(num)).ToArray()).ToArray();
         }
 
@@ -82,6 +84,28 @@ namespace AdventOfCode
             }
         }
 
+        public class Rule_2
+        {
+            public int[] RulePair;
+            public int[] ItemIndices;
+            public bool IsActive { get; private set; }
+
+            public Rule_2(int[] order)
+            {
+                if (order.Length != 2)
+                    throw new ArgumentException("Rule must have 2 values");
+                RulePair = order;
+            }
+
+            public void Init(List<int> update)
+            {
+                ItemIndices = new int[2];
+                ItemIndices[0] = update.IndexOf(RulePair[0]);
+                ItemIndices[1] = update.IndexOf(RulePair[1]);
+                IsActive = ItemIndices[0] != -1 && ItemIndices[1] != -1;
+            }
+        }
+
         public override ValueTask<string> Solve_1()
         {
             int sum = 0;
@@ -116,69 +140,52 @@ namespace AdventOfCode
 
             foreach (List<int> update in _badUpdates)
             {
-                Dictionary<Rule, int> storedIndices = new();
-
-                for (int i = 0; i < update.Count; i++)
+                foreach (Rule_2 rule in _secondRules)
                 {
-                    int value = update[i];
-                    int itemIndex = i;
-                    int errorOffset = 0;
-                    foreach (Rule rule in _rules)
-                    {
-                        RuleResult result = rule.Check(value);
-                        if (result == RuleResult.OutOfOrder)
-                        {
-                            storedIndices.Add(rule, i - errorOffset);
-                            //Console.WriteLine($"OOO: Stored {rule.RulePair[0]} and {rule.RulePair[1]} at {i} | HASH={rule.GetHashCode()}");
-                        }
-                        if (result == RuleResult.Bad)
-                        {
-                            errorOffset++;
-                            //Console.WriteLine("BEFORE");
-                            //foreach (var pair in storedIndices)
-                                //Console.WriteLine($"{i} - Reference for {(pair.Key.Queue.Count == 0 ? "NULL" : pair.Key.Queue.Peek())} at index {pair.Value}");
-                            //Console.WriteLine($"BAD: {value} out of order at {i} | HASH={rule.GetHashCode()}");
-                            //Console.WriteLine($"Moving {value} from index {i} to index {storedIndices[rule]}");
-                            update.RemoveAt(itemIndex);
-                            update.Insert(storedIndices[rule], value);
-                            itemIndex = storedIndices[rule];
-                            int tmp_index = storedIndices[rule];
-                            storedIndices.Remove(rule);
-                            for (int j = 0; j < storedIndices.Count; j++)
-                            {
-                                var pair = storedIndices.ElementAt(j);
-                                if (storedIndices[pair.Key] == i)
-                                {
-                                    //Console.WriteLine($"Relocating reference from index {i} to {tmp_index}");
-                                    storedIndices[pair.Key] = tmp_index;
-                                }
-                                else if (pair.Value >= tmp_index && pair.Value < i)
-                                    storedIndices[pair.Key]++;
-                            }
-                            //Console.WriteLine("AFTER");
-                            //foreach (var pair in storedIndices)
-                                //Console.WriteLine($"{i} - Reference for {(pair.Key.Queue.Count == 0 ? "NULL" : pair.Key.Queue.Peek())} at index {pair.Value}");
-                        }
-                    }
+                    rule.Init(update);
                 }
 
-                foreach (Rule rule in _rules)
-                {
-                    rule.Reset();
-                }
-
-                /*foreach (int value in update)
-                    Console.Write($"{value},");
-                Console.WriteLine();*/
-
+                SortUpdate(update);
                 sum += update[(update.Count - 1) / 2];
             }
 
+            CheckUnsortedUpdates();
+
+            return new ValueTask<string>(sum.ToString());
+        }
+
+        private void SortUpdate(List<int> update)
+        {
+            List<int> cached_update;
+            do
+            {
+                cached_update = new (update);
+                foreach (Rule_2 rule in _secondRules.Where(_secondRules => _secondRules.IsActive))
+                {
+                    if (rule.ItemIndices[0] > rule.ItemIndices[1])
+                    {
+                        int tmp = update[rule.ItemIndices[0]];
+                        update.RemoveAt(rule.ItemIndices[0]);
+                        update.Insert(rule.ItemIndices[1], tmp);
+
+                        foreach (Rule_2 rule2 in _secondRules.Where(_secondRules => _secondRules.IsActive))
+                        {
+                            rule2.Init(update);
+                        }
+                    }
+                }
+            }
+            while (!cached_update.SequenceEqual(update));
+        }
+
+        private void CheckUnsortedUpdates(bool verbose = false)
+        {
             int numBadUpdates = 0;
             foreach (List<int> update in _badUpdates)
             {
                 foreach (int value in update)
                 {
+                    if (verbose) Console.Write($"{value} ");
                     foreach (Rule rule in _rules)
                     {
                         rule.Check(value);
@@ -186,16 +193,25 @@ namespace AdventOfCode
                 }
                 if (_rules.Any(rule => rule.OutOfOrder && rule.Done))
                 {
+                    if (verbose) Console.Write("Bad");
                     numBadUpdates++;
                 }
                 foreach (Rule rule in _rules)
                 {
                     rule.Reset();
                 }
+                if (verbose) Console.WriteLine();
             }
             Console.WriteLine($"Error Check: Detected {numBadUpdates} bad updates.");
+        }
 
-            return new ValueTask<string>(sum.ToString());
+        private void PrintUpdate(List<int> update)
+        {
+            foreach (int value in update)
+            {
+                Console.Write($"{value},");
+            }
+            Console.WriteLine();
         }
     }
 }
