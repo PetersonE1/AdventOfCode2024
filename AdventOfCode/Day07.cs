@@ -54,7 +54,7 @@ namespace AdventOfCode
                 if (StepValue_2(result, values.Skip(1).ToArray(), values[0]))
                 {
                     solveableEquationsSum += result;
-                    Console.WriteLine($"Solved {++count}/{total} equations");
+                    Console.WriteLine($"Solved {++count}/{total} equations ({((double)count / total * 100):F}%)");
                 }
             }
 
