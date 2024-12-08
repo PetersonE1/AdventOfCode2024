@@ -45,7 +45,20 @@ namespace AdventOfCode
 
         public override ValueTask<string> Solve_2()
         {
-            throw new NotImplementedException();
+            ulong solveableEquationsSum = 0;
+
+            int count = 0;
+            int total = _equations.Length;
+            foreach ((ulong result, ulong[] values) in _equations)
+            {
+                if (StepValue_2(result, values.Skip(1).ToArray(), values[0]))
+                {
+                    solveableEquationsSum += result;
+                    Console.WriteLine($"Solved {++count}/{total} equations");
+                }
+            }
+
+            return new ValueTask<string>(solveableEquationsSum.ToString());
         }
 
         private bool StepValue(ulong result, ulong[] values, ulong current)
@@ -66,6 +79,39 @@ namespace AdventOfCode
             {
                 if (StepValue(result, values.Skip(1).ToArray(), sum)) return true;
                 if (StepValue(result, values.Skip(1).ToArray(), product)) return true;
+            }
+
+            return false;
+        }
+
+        private bool StepValue_2(ulong result, ulong[] values, ulong current)
+        {
+            ulong sum = current + values[0];
+            ulong product = current * values[0];
+            ulong concat = ulong.Parse(current.ToString() + values[0].ToString());
+
+            if (values.Length == 1)
+                return sum == result || product == result || concat == result;
+
+            if (sum < result || (values.Length > 1 && values[1] == 1))
+            {
+                if (StepValue_2(result, values.Skip(1).ToArray(), sum)) return true;
+                if (StepValue_2(result, values.Skip(1).ToArray(), product)) return true;
+                if (StepValue_2(result, values.Skip(1).ToArray(), concat)) return true;
+            }
+
+            if (product < result || (values.Length > 1 && values[1] == 1))
+            {
+                if (StepValue_2(result, values.Skip(1).ToArray(), sum)) return true;
+                if (StepValue_2(result, values.Skip(1).ToArray(), product)) return true;
+                if (StepValue_2(result, values.Skip(1).ToArray(), concat)) return true;
+            }
+
+            if (concat < result || (values.Length > 1 && values[1] == 1))
+            {
+                if (StepValue_2(result, values.Skip(1).ToArray(), sum)) return true;
+                if (StepValue_2(result, values.Skip(1).ToArray(), product)) return true;
+                if (StepValue_2(result, values.Skip(1).ToArray(), concat)) return true;
             }
 
             return false;
